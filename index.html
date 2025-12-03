@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Küberturvalisuse Põgenemistuba</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .intro-screen, .room, .victory-screen {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .intro-screen.active, .room.active, .victory-screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        .intro-content {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .intro-content h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .intro-content p {
+            font-size: 1.2em;
+            color: #555;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .room-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .room-header h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .room-header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        /* Room 1: Password Strength */
+        .password-indicators {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .indicator-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .indicator-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .indicator-card.selected {
+            border-color: #667eea;
+            background: #e8eaf6;
+        }
+
+        .indicator-card.correct {
+            border-color: #4caf50;
+            background: #e8f5e9;
+        }
+
+        .indicator-card.wrong {
+            border-color: #f44336;
+            background: #ffebee;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .indicator-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        /* Room 2: Network Security */
+        .network-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .network-node {
+            aspect-ratio: 1;
+            background: #f8f9fa;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            padding: 10px;
+        }
+
+        .network-node:hover {
+            transform: scale(1.05);
+        }
+
+        .network-node.secure {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .network-node.selected {
+            border-color: #667eea;
+            background: #e8eaf6;
+        }
+
+        .node-icon {
+            font-size: 2.5em;
+            margin-bottom: 5px;
+        }
+
+        .node-label {
+            font-size: 0.9em;
+            text-align: center;
+            color: #333;
+        }
+
+        /* Room 3: Encryption Wheel */
+        .cipher-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .cipher-wheels {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .cipher-wheel {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+
+        .wheel-outer, .wheel-inner {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .wheel-outer {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .wheel-inner {
+            width: 60%;
+            height: 60%;
+            background: white;
+            color: #667eea;
+            top: 20%;
+            left: 20%;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .wheel-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .wheel-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+        }
+
+        .wheel-btn:hover {
+            background: #764ba2;
+            transform: scale(1.1);
+        }
+
+        .cipher-message {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.5em;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 3px;
+            color: #333;
+            border: 2px dashed #667eea;
+        }
+
+        /* Room 4: Phishing Detection */
+        .email-container {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .email-header {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .email-field {
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+
+        .email-field strong {
+            color: #667eea;
+        }
+
+        .email-body {
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .suspicious-elements {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .suspicious-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            text-align: center;
+        }
+
+        .suspicious-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .suspicious-item.selected {
+            border-color: #667eea;
+            background: #e8eaf6;
+        }
+
+        .suspicious-item.correct {
+            border-color: #4caf50;
+            background: #e8f5e9;
+        }
+
+        .suspicious-item.wrong {
+            border-color: #f44336;
+            background: #ffebee;
+            animation: shake 0.5s;
+        }
+
+        /* Victory Screen */
+        .victory-content {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .victory-content h2 {
+            color: #4caf50;
+            font-size: 3em;
+            margin-bottom: 20px;
+            animation: bounce 1s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .victory-content .trophy {
+            font-size: 8em;
+            margin: 20px 0;
+            animation: rotate 2s ease-in-out infinite;
+        }
+
+        @keyframes rotate {
+            0%, 100% { transform: rotate(-10deg); }
+            50% { transform: rotate(10deg); }
+        }
+
+        .stats {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            display: inline-block;
+        }
+
+        .stat-item {
+            font-size: 1.3em;
+            margin: 10px 0;
+            color: #333;
+        }
+
+        .stat-item strong {
+            color: #667eea;
+        }
+
+        .feedback-message {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .submit-btn {
+            background: #4caf50;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            background: #45a049;
+        }
+
+        .hint {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            color: #856404;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .network-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .cipher-wheels {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <h1>🔐 Küberturvalisuse Põgenemistuba</h1>
+
+        <!-- Intro Screen -->
+        <div class="intro-screen active" id="introScreen">
+            <div class="intro-content">
+                <h2>Tere tulemast küberturvalisuse seiklusele!</h2>
+                <p>Sa oled sattunud digitaalsesse põgenemistuppa. Sinu ülesanne on läbida neli küberturvalisuse väljakutset ja pääseda vabaks!</p>
+                <p><strong>Iga tuba testib sinu teadmisi:</strong></p>
+                <p>🔑 Paroolide turvalisus<br>
+                   🌐 Võrguturvalisus<br>
+                   🔐 Krüpteerimine<br>
+                   📧 Õngitsusrünnakud</p>
+                <p>Vali õiged vastused ja ava järgmine uks!</p>
+                <button class="btn" onclick="startGame()">Alusta seiklust</button>
+            </div>
+        </div>
+
+        <!-- Room 1: Password Strength -->
+        <div class="room" id="room1">
+            <div class="room-header">
+                <h2>🔑 Tuba 1: Tugeva parooli saladus</h2>
+                <p>Vali KÕIK omadused, mis teevad paroolist tugeva ja turvalise:</p>
+            </div>
+
+            <div class="password-indicators">
+                <div class="indicator-card" data-correct="true" onclick="selectIndicator(this)">
+                    <div class="indicator-icon">🔤</div>
+                    <div>Suured ja väikesed tähed</div>
+                </div>
+                <div class="indicator-card" data-correct="true" onclick="selectIndicator(this)">
+                    <div class="indicator-icon">🔢</div>
+                    <div>Numbrid</div>
+                </div>
+                <div class="indicator-card" data-correct="true" onclick="selectIndicator(this)">
+                    <div class="indicator-icon">⚡</div>
+                    <div>Erimärgid (!@#$%)</div>
+                </div>
+                <div class="indicator-card" data-correct="true" onclick="selectIndicator(this)">
+                    <div class="indicator-icon">📏</div>
+                    <div>Vähemalt 12 tähemärki</div>
+                </div>
+                <div class="indicator-card" data-correct="false" onclick="selectIndicator(this)">
+                    <div class="indicator-icon">📅</div>
+                    <div>Sinu sünnipäev</div>
+                </div>
+                <div class="indicator-card" data-correct="false" onclick="selectIndicator(this)">
+                    <div class="indicator-icon">👤</div>
+                    <div>Sinu nimi</div>
+                </div>
+                <div class="indicator-card" data-correct="false" onclick="selectIndicator(this)">
+                    <div class="indicator-icon">🔁</div>
+                    <div>Sama parool igal pool</div>
+                </div>
+                <div class="indicator-card" data-correct="true" onclick="selectIndicator(this)">
+                    <div class="indicator-icon">🎲</div>
+                    <div>Juhuslik kombinatsioon</div>
+                </div>
+            </div>
+
+            <div class="hint">💡 Nõuanne: Tugev parool on pikk, juhuslik ja sisaldab erinevaid tähemärke!</div>
+
+            <button class="btn submit-btn" onclick="checkRoom1()">Kontrolli vastuseid</button>
+        </div>
+
+        <!-- Room 2: Network Security -->
+        <div class="room" id="room2">
+            <div class="room-header">
+                <h2>🌐 Tuba 2: Turvalised ühendused</h2>
+                <p>Vali KÕIK turvalised võrguelementid ja praktikad:</p>
+            </div>
+
+            <div class="network-grid">
+                <div class="network-node" data-secure="true" onclick="selectNode(this)">
+                    <div class="node-icon">🔒</div>
+                    <div class="node-label">HTTPS veebileht</div>
+                </div>
+                <div class="network-node" data-secure="false" onclick="selectNode(this)">
+                    <div class="node-icon">📶</div>
+                    <div class="node-label">Avalik WiFi ilma paroolita</div>
+                </div>
+                <div class="network-node" data-secure="true" onclick="selectNode(this)">
+                    <div class="node-icon">🛡️</div>
+                    <div class="node-label">VPN ühendus</div>
+                </div>
+                <div class="network-node" data-secure="true" onclick="selectNode(this)">
+                    <div class="node-icon">🔐</div>
+                    <div class="node-label">WPA3 krüpteeritud WiFi</div>
+                </div>
+                <div class="network-node" data-secure="false" onclick="selectNode(this)">
+                    <div class="node-icon">⚠️</div>
+                    <div class="node-label">HTTP veebileht</div>
+                </div>
+                <div class="network-node" data-secure="true" onclick="selectNode(this)">
+                    <div class="node-icon">🔥</div>
+                    <div class="node-label">Tulemüür</div>
+                </div>
+                <div class="network-node" data-secure="false" onclick="selectNode(this)">
+                    <div class="node-icon">📡</div>
+                    <div class="node-label">Bluetooth alati sees</div>
+                </div>
+                <div class="network-node" data-secure="true" onclick="selectNode(this)">
+                    <div class="node-icon">🔄</div>
+                    <div class="node-label">Regulaarsed tarkvarauuendused</div>
+                </div>
+            </div>
+
+            <div class="hint">💡 Nõuanne: Turvaline võrk kasutab krüpteerimist ja autentimist!</div>
+
+            <button class="btn submit-btn" onclick="checkRoom2()">Kontrolli vastuseid</button>
+        </div>
+
+        <!-- Room 3: Encryption -->
+        <div class="room" id="room3">
+            <div class="room-header">
+                <h2>🔐 Tuba 3: Caesari šiffer</h2>
+                <p>Dekrüpteeri sõnum kasutades õiget nihkeväärtust (shift). Proovi erinevaid nihkeid!</p>
+            </div>
+
+            <div class="cipher-container">
+                <div class="cipher-message" id="cipherMessage">KRLD HQG WXUYD</div>
+                
+                <div class="cipher-wheels">
+                    <div>
+                        <div class="cipher-wheel">
+                            <div class="wheel-outer">
+                                <span id="wheelValue">0</span>
+                            </div>
+                            <div class="wheel-inner">Nihke</div>
+                        </div>
+                        <div class="wheel-controls">
+                            <button class="wheel-btn" onclick="adjustShift(-1)">◀</button>
+                            <button class="wheel-btn" onclick="adjustShift(1)">▶</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin: 20px 0;">
+                    <p style="font-size: 1.2em; color: #666;">Dekrüpteeritud sõnum:</p>
+                    <div class="cipher-message" id="decryptedMessage" style="background: #e8f5e9;">---</div>
+                </div>
+            </div>
+
+            <div class="hint">💡 Nõuanne: Caesari šiffer nihutab iga tähte tähestikus. Õige vastus on eestikeelne sõnum!</div>
+
+            <button class="btn submit-btn" onclick="checkRoom3()">Kontrolli vastust</button>
+        </div>
+
+        <!-- Room 4: Phishing Detection -->
+        <div class="room" id="room4">
+            <div class="room-header">
+                <h2>📧 Tuba 4: Õngitsusrünnaku tuvastamine</h2>
+                <p>Vaata allolevat e-kirja ja vali KÕIK kahtlased elemendid:</p>
+            </div>
+
+            <div class="email-container">
+                <div class="email-header">
+                    <div class="email-field"><strong>Saatja:</strong> pank@veebipank-secure.tk</div>
+                    <div class="email-field"><strong>Teema:</strong> KIIRELOOMULINE - Sinu konto on blokeeritud!</div>
+                    <div class="email-field"><strong>Kuupäev:</strong> Täna, 09:15</div>
+                </div>
+                <div class="email-body">
+                    <p>Tere,</p>
+                    <p>Oleme tuvastanud kahtlast tegevust Teie kontol. Teie konto on ajutiselt blokeeritud.</p>
+                    <p><strong style="color: red;">KIIRELOOMULINE: Kinnitamiseks klõpsake siia 24 tunni jooksul!</strong></p>
+                    <p>Palun sisestage oma kasutajanimi, parool ja PIN-kood järgmisel lehel.</p>
+                    <p>Kui te ei tee seda koheselt, kustutatakse Teie konto jäädavalt.</p>
+                    <p>Lugupidamisega,<br>Teie panga turvalisuse osakond</p>
+                </div>
+            </div>
+
+            <div class="suspicious-elements">
+                <div class="suspicious-item" data-suspicious="true" onclick="selectSuspicious(this)">
+                    <div>🌐 Kahtlane domeen (.tk)</div>
+                </div>
+                <div class="suspicious-item" data-suspicious="true" onclick="selectSuspicious(this)">
+                    <div>⚠️ Hirmutav keel ja kiireloomulisus</div>
+                </div>
+                <div class="suspicious-item" data-suspicious="true" onclick="selectSuspicious(this)">
+                    <div>🔑 Küsib parooli ja PIN-koodi</div>
+                </div>
+                <div class="suspicious-item" data-suspicious="false" onclick="selectSuspicious(this)">
+                    <div>📅 Saabumise kuupäev</div>
+                </div>
+                <div class="suspicious-item" data-suspicious="true" onclick="selectSuspicious(this)">
+                    <div>🔗 Nõuab viivitamatut klikkimist</div>
+                </div>
+                <div class="suspicious-item" data-suspicious="false" onclick="selectSuspicious(this)">
+                    <div>✉️ Vormindatud tekst</div>
+                </div>
+                <div class="suspicious-item" data-suspicious="true" onclick="selectSuspicious(this)">
+                    <div>😱 Ähvardab konto kustutamisega</div>
+                </div>
+                <div class="suspicious-item" data-suspicious="false" onclick="selectSuspicious(this)">
+                    <div>👋 Tervitus olemas</div>
+                </div>
+            </div>
+
+            <div class="hint">💡 Nõuanne: Õngitsuskirjad kasutavad hirmutamist ja küsivad tundlikku infot!</div>
+
+            <button class="btn submit-btn" onclick="checkRoom4()">Kontrolli vastuseid</button>
+        </div>
+
+        <!-- Victory Screen -->
+        <div class="victory-screen" id="victoryScreen">
+            <div class="victory-content">
+                <h2>🎉 Palju õnne!</h2>
+                <div class="trophy">🏆</div>
+                <p style="font-size: 1.5em; color: #333; margin: 20px 0;">Oled edukalt läbinud kõik küberturvalisuse väljakutsed!</p>
+                
+                <div class="stats">
+                    <div class="stat-item"><strong>Läbitud tubasid:</strong> 4/4</div>
+                    <div class="stat-item"><strong>Staatus:</strong> Küberturvalisuse meister! 🛡️</div>
+                </div>
+
+                <div style="background: #e8f5e9; padding: 30px; border-radius: 15px; margin: 30px 0;">
+                    <h3 style="color: #4caf50; margin-bottom: 15px;">Mida sa õppisid:</h3>
+                    <div style="text-align: left; display: inline-block;">
+                        <p>✅ Kuidas luua tugevaid paroole</p>
+                        <p>✅ Kuidas kasutada turvaliselt võrke</p>
+                        <p>✅ Mis on krüpteerimine ja kuidas see töötab</p>
+                        <p>✅ Kuidas ära tunda õngitsusrünnakuid</p>
+                    </div>
+                </div>
+
+                <p style="font-size: 1.2em; color: #666; margin: 20px 0;">
+                    Jäta need oskused meelde ja kasuta neid igapäevaselt internetis surfates!
+                </p>
+
+                <button class="btn" onclick="restartGame()">Mängi uuesti</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRoom = 0;
+        const totalRooms = 4;
+        let currentShift = 0;
+
+        const encryptedMessage = "KRLD HQG WXUYD";
+        const correctShift = 3; // Shift to get "HOIA END TURVA"
+
+        function startGame() {
+            currentRoom = 1;
+            document.getElementById('introScreen').classList.remove('active');
+            document.getElementById('room1').classList.add('active');
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const progress = (currentRoom / totalRooms) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function showFeedback(message, type = 'warning') {
+            const existingFeedback = document.querySelector('.temporary-feedback');
+            if (existingFeedback) {
+                existingFeedback.remove();
+            }
+
+            const feedback = document.createElement('div');
+            feedback.className = 'temporary-feedback';
+            feedback.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: ${type === 'warning' ? '#fff3cd' : '#d4edda'};
+                border: 3px solid ${type === 'warning' ? '#ffc107' : '#4caf50'};
+                color: ${type === 'warning' ? '#856404' : '#155724'};
+                padding: 30px 50px;
+                border-radius: 15px;
+                font-size: 1.3em;
+                font-weight: bold;
+                z-index: 10000;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                animation: fadeIn 0.3s ease;
+            `;
+            feedback.textContent = message;
+            document.body.appendChild(feedback);
+
+            setTimeout(() => {
+                feedback.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => feedback.remove(), 300);
+            }, 2000);
+        }
+
+        function selectIndicator(element) {
+            element.classList.toggle('selected');
+        }
+
+        function checkRoom1() {
+            const cards = document.querySelectorAll('#room1 .indicator-card');
+            let allCorrect = true;
+            let hasWrong = false;
+
+            // Clear previous feedback classes
+            cards.forEach(card => {
+                card.classList.remove('correct', 'wrong');
+            });
+
+            cards.forEach(card => {
+                const isCorrect = card.dataset.correct === 'true';
+                const isSelected = card.classList.contains('selected');
+
+                if (isCorrect && !isSelected) {
+                    allCorrect = false;
+                } else if (!isCorrect && isSelected) {
+                    allCorrect = false;
+                    hasWrong = true;
+                    card.classList.add('wrong');
+                    setTimeout(() => card.classList.remove('wrong'), 500);
+                } else if (isCorrect && isSelected) {
+                    card.classList.add('correct');
+                }
+            });
+
+            if (allCorrect) {
+                setTimeout(() => {
+                    document.getElementById('room1').classList.remove('active');
+                    document.getElementById('room2').classList.add('active');
+                    currentRoom = 2;
+                    updateProgress();
+                }, 1000);
+            } else {
+                if (!hasWrong) {
+                    showFeedback('⚠️ Kontrolli veel kord - mõni õige vastus on valimata!');
+                }
+            }
+        }
+
+        function selectNode(element) {
+            element.classList.toggle('selected');
+        }
+
+        function checkRoom2() {
+            const nodes = document.querySelectorAll('#room2 .network-node');
+            let allCorrect = true;
+            let hasWrong = false;
+
+            // Clear previous feedback classes
+            nodes.forEach(node => {
+                node.classList.remove('secure', 'wrong');
+            });
+
+            nodes.forEach(node => {
+                const isSecure = node.dataset.secure === 'true';
+                const isSelected = node.classList.contains('selected');
+
+                if (isSecure && !isSelected) {
+                    allCorrect = false;
+                } else if (!isSecure && isSelected) {
+                    allCorrect = false;
+                    hasWrong = true;
+                    node.classList.add('wrong');
+                    setTimeout(() => node.classList.remove('wrong'), 500);
+                } else if (isSecure && isSelected) {
+                    node.classList.add('secure');
+                }
+            });
+
+            if (allCorrect) {
+                setTimeout(() => {
+                    document.getElementById('room2').classList.remove('active');
+                    document.getElementById('room3').classList.add('active');
+                    currentRoom = 3;
+                    updateProgress();
+                }, 1000);
+            } else {
+                if (!hasWrong) {
+                    showFeedback('⚠️ Kontrolli veel kord - mõni turvaline element on valimata!');
+                }
+            }
+        }
+
+        function adjustShift(delta) {
+            currentShift += delta;
+            if (currentShift < 0) currentShift = 25;
+            if (currentShift > 25) currentShift = 0;
+            
+            document.getElementById('wheelValue').textContent = currentShift;
+            decryptMessage();
+        }
+
+        function decryptMessage() {
+            let decrypted = '';
+            for (let char of encryptedMessage) {
+                if (char === ' ') {
+                    decrypted += ' ';
+                } else {
+                    let code = char.charCodeAt(0);
+                    if (code >= 65 && code <= 90) { // Uppercase
+                        code = code - currentShift;
+                        if (code < 65) code += 26;
+                        decrypted += String.fromCharCode(code);
+                    } else {
+                        decrypted += char;
+                    }
+                }
+            }
+            document.getElementById('decryptedMessage').textContent = decrypted;
+        }
+
+        function checkRoom3() {
+            if (currentShift === correctShift) {
+                setTimeout(() => {
+                    document.getElementById('room3').classList.remove('active');
+                    document.getElementById('room4').classList.add('active');
+                    currentRoom = 4;
+                    updateProgress();
+                }, 500);
+            } else {
+                showFeedback('⚠️ See ei ole õige nihke väärtus. Proovi veel!');
+            }
+        }
+
+        function selectSuspicious(element) {
+            element.classList.toggle('selected');
+        }
+
+        function checkRoom4() {
+            const items = document.querySelectorAll('#room4 .suspicious-item');
+            let allCorrect = true;
+            let hasWrong = false;
+
+            // Clear previous feedback classes
+            items.forEach(item => {
+                item.classList.remove('correct', 'wrong');
+            });
+
+            items.forEach(item => {
+                const isSuspicious = item.dataset.suspicious === 'true';
+                const isSelected = item.classList.contains('selected');
+
+                if (isSuspicious && !isSelected) {
+                    allCorrect = false;
+                } else if (!isSuspicious && isSelected) {
+                    allCorrect = false;
+                    hasWrong = true;
+                    item.classList.add('wrong');
+                    setTimeout(() => item.classList.remove('wrong'), 500);
+                } else if (isSuspicious && isSelected) {
+                    item.classList.add('correct');
+                }
+            });
+
+            if (allCorrect) {
+                setTimeout(() => {
+                    document.getElementById('room4').classList.remove('active');
+                    document.getElementById('victoryScreen').classList.add('active');
+                    currentRoom = totalRooms;
+                    updateProgress();
+                }, 1000);
+            } else {
+                if (!hasWrong) {
+                    showFeedback('⚠️ Kontrolli veel kord - mõni kahtlane element on valimata!');
+                }
+            }
+        }
+
+        function restartGame() {
+            currentRoom = 0;
+            currentShift = 0;
+            document.getElementById('wheelValue').textContent = '0';
+            document.getElementById('decryptedMessage').textContent = '---';
+            
+            // Reset all selections
+            document.querySelectorAll('.indicator-card, .network-node, .suspicious-item').forEach(el => {
+                el.classList.remove('selected', 'correct', 'wrong', 'secure');
+            });
+
+            document.getElementById('victoryScreen').classList.remove('active');
+            document.getElementById('introScreen').classList.add('active');
+            updateProgress();
+        }
+
+        // Initialize
+        updateProgress();
+    </script>
+</body>
+</html>
