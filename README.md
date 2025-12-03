@@ -63,9 +63,3 @@ After completing the game, students will understand:
 2. Kuidas kasutada turvaliselt võrke / How to use networks securely
 3. Mis on krüpteerimine ja kuidas see töötab / What encryption is and how it works
 4. Kuidas ära tunda õngitsusrünnakuid / How to recognize phishing attacks
-
-## Autor / Author
-
-Loodud GitHub Copilot abil / Created with GitHub Copilot
-Versioon / Version: 1.0
-Kuupäev / Date: 2025-12-03
